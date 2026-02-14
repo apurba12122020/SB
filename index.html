@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Md. Sihab Bhuiyan - Portfolio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js for 3D Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #6366f1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #818cf8;
+        }
+
+        /* Gradient Text */
+        .text-gradient {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Card Hover Effects */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 3D Canvas Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* Smooth Animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navigation Link Hover */
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background: linear-gradient(90deg, #6366f1, #ec4899);
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        /* Button Animation */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px 0 rgba(99, 102, 241, 0.39);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+            filter: brightness(1.1);
+        }
+        
+        /* Mobile Menu Animation */
+        #mobile-menu {
+            transition: all 0.3s ease-in-out;
+            transform-origin: top;
+        }
+
+        /* Profile Image Animation */
+        .profile-img {
+            transition: transform 0.3s ease;
+        }
+        .profile-img:hover {
+            transform: scale(1.02);
+        }
+
+        /* Education Timeline */
+        .education-timeline {
+            position: relative;
+        }
+        .education-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #6366f1, #a855f7, #ec4899);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- 3D Background Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 start-0 border-b border-white/10 bg-slate-900/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#" class="text-2xl font-bold text-white">Sihab<span class="text-gradient">.</span></a>
+                </div>
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#home" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Home</a>
+                        <a href="#about" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">About</a>
+                        <a href="#education" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Education</a>
+                        <a href="#experience" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Experience</a>
+                        <a href="#publications" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Publications</a>
+                        <a href="#contact" class="nav-link text-gray-300 hover:text-white px-3 py-2 text-sm font-medium">Contact</a>
+                    </div>
+                </div>
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-300 hover:text-white focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-slate-900/95 border-b border-white/10">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#home" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Home</a>
+                <a href="#about" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About</a>
+                <a href="#education" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Education</a>
+                <a href="#experience" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Experience</a>
+                <a href="#publications" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Publications</a>
+                <a href="#contact" class="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative min-h-screen flex items-center justify-center pt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+            <div class="fade-in">
+                <div class="inline-block mb-4 px-4 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-300 text-sm font-medium">
+                    Welcome to my portfolio
+                </div>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6">
+                    <span class="block text-white">Md. Sihab Bhuiyan</span>
+                    <span class="block text-gradient mt-2">Data Scientist & Web Developer</span>
+                </h1>
+                <p class="mt-4 max-w-2xl mx-auto text-lg sm:text-xl text-gray-400">
+                    Aspiring Data Scientist with a background in Computer Engineering. 
+                    Passionate about data-driven problem solving, front-end development, and medical research.
+                </p>
+                <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="#contact" class="btn-primary px-8 py-3 rounded-lg font-semibold text-white">
+                        Get In Touch
+                    </a>
+                    <a href="#publications" class="px-8 py-3 rounded-lg font-semibold text-white border border-white/20 hover:bg-white/10 transition-colors">
+                        View Publications
+                    </a>
+                </div>
+                
+                <!-- Social Links in Hero -->
+                <div class="mt-10 flex justify-center space-x-6">
+                    <a href="https://orcid.org/my-orcid?orcid=0009-0001-4048-8480" target="_blank" class="text-gray-400 hover:text-green-500 transition-colors" title="ORCID">
+                        <span class="sr-only">ORCID</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm4.707 16.707L16 17.414l-2.293 2.293-1.414-1.414L14.586 16 12.293 13.707l1.414-1.414L16 14.586l2.293-2.293 1.414 1.414L17.414 16l2.293 2.293-1.414 1.414z"/></svg>
+                    </a>
+                    <a href="https://scholar.google.com/citations?view_op=list_works&hl=en&user=un1wPOwAAAAJ" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors" title="Google Scholar">
+                        <span class="sr-only">Google Scholar</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 24a7 7 0 1 1 0-14 7 7 0 0 1 0 14zm0-24L0 9.5l4.838 3.94A8 8 0 0 1 12 9a8 8 0 0 1 7.162 4.44L24 9.5z"/></svg>
+                    </a>
+                    <a href="https://www.linkedin.com/in/md-sihab-bhuiyan" target="_blank" class="text-gray-400 hover:text-blue-600 transition-colors" title="LinkedIn">
+                        <span class="sr-only">LinkedIn</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                    </a>
+                    <a href="https://github.com/Md-Sihab-Bhuiyan" target="_blank" class="text-gray-400 hover:text-white transition-colors" title="GitHub">
+                        <span class="sr-only">GitHub</span>
+                        <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"/></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-slate-900/50 backdrop-blur-sm border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl font-bold text-white">About Me</h2>
+                <div class="w-16 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Profile Image -->
+                <div class="fade-in order-2 md:order-1">
+                    <div class="relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                        <div class="relative bg-slate-800 rounded-lg overflow-hidden shadow-xl">
+                            <img src="assets/Sihab.jpeg" alt="Md. Sihab Bhuiyan" class="w-full h-full object-cover profile-img">
+                        </div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <a href="assets/Sihab.pdf" download="Md_Sihab_Bhuiyan_CV.pdf" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-lg shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Download CV
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Text Content -->
+                <div class="fade-in order-1 md:order-2">
+                    <h3 class="text-2xl font-bold text-white mb-4">The Intersection of Data & Web</h3>
+                    <p class="text-gray-300 mb-6 leading-relaxed">
+                        Aspiring Data Scientist with a background in Computer Engineering and solid experience in front-end development using HTML, CSS, JavaScript, Tailwind, and React. Passionate about data-driven problem solving, with hands-on experience in data analysis, visualization, and research—particularly in medical domains.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-slate-800/50 p-4 rounded-lg border border-white/5">
+                            <h4 class="font-semibold text-indigo-400 mb-1">Location</h4>
+                            <p class="text-sm text-gray-400">Jatrabari, Dhaka - 1362, Bangladesh</p>
+                        </div>
+                        <div class="bg-slate-800/50 p-4 rounded-lg border border-white/5">
+                            <h4 class="font-semibold text-indigo-400 mb-1">Email</h4>
+                            <p class="text-sm text-gray-400">sihab.bhuiyan68690@gmail.com</p>
+                        </div>
+                        <div class="bg-slate-800/50 p-4 rounded-lg border border-white/5">
+                            <h4 class="font-semibold text-indigo-400 mb-1">Phone</h4>
+                            <p class="text-sm text-gray-400">+8801854149890</p>
+                        </div>
+                        <div class="bg-slate-800/50 p-4 rounded-lg border border-white/5">
+                            <h4 class="font-semibold text-indigo-400 mb-1">Education</h4>
+                            <p class="text-sm text-gray-400">B.Sc. in CSE, North South University</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 flex-wrap">
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-xs text-gray-300 border border-white/10">Python</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-xs text-gray-300 border border-white/10">React</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-xs text-gray-300 border border-white/10">Data Analysis</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-xs text-gray-300 border border-white/10">Firebase</span>
+                        <span class="px-3 py-1 bg-slate-800 rounded-full text-xs text-gray-300 border border-white/10">Machine Learning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl font-bold text-white">Education</h2>
+                <div class="w-16 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <!-- Education Card -->
+                <div class="glass-card p-8 rounded-xl fade-in relative overflow-hidden">
+                    <!-- Decorative Gradient -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                    
+                    <div class="relative">
+                        <!-- University Logo/Icon -->
+                        <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+                            <div class="flex-shrink-0">
+                                <div class="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                                    <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1">
+                                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                                    <div>
+                                        <h3 class="text-2xl font-bold text-white mb-1">Bachelor of Science in Computer Science and Engineering</h3>
+                                        <p class="text-xl text-indigo-400 font-semibold">North South University</p>
+                                    </div>
+                                    <span class="mt-2 sm:mt-0 inline-flex items-center px-4 py-1.5 bg-green-500/20 text-green-400 text-sm font-medium rounded-full border border-green-500/30">
+                                        <span class="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></span>
+                                        Currently Pursuing
+                                    </span>
+                                </div>
+                                
+                                <p class="text-gray-300 mb-6 leading-relaxed">
+                                    Pursuing a Bachelor of Science in Computer Science and Engineering (B.Sc. in CSE) under the Department of Electrical and Computer Engineering (ECE). The program emphasizes software development, computer systems, and engineering principles. Alongside full-stack development, I've developed a strong interest in data science and analytics, supported by experience in research and data-driven projects.
+                                </p>
+                                
+                                <!-- Key Highlights -->
+                                <div class="grid sm:grid-cols-2 gap-4 mb-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-400">Department</p>
+                                            <p class="text-white font-medium">ECE</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm text-gray-400">Location</p>
+                                            <p class="text-white font-medium">Bashundhara, Dhaka, Bangladesh</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Focus Areas -->
+                                <div>
+                                    <p class="text-sm text-gray-400 mb-3">Focus Areas</p>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="px-3 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg text-sm font-medium border border-indigo-500/30">Software Development</span>
+                                        <span class="px-3 py-1.5 bg-purple-500/20 text-purple-300 rounded-lg text-sm font-medium border border-purple-500/30">Data Science</span>
+                                        <span class="px-3 py-1.5 bg-pink-500/20 text-pink-300 rounded-lg text-sm font-medium border border-pink-500/30">Full-Stack Development</span>
+                                        <span class="px-3 py-1.5 bg-blue-500/20 text-blue-300 rounded-lg text-sm font-medium border border-blue-500/30">Computer Systems</span>
+                                        <span class="px-3 py-1.5 bg-green-500/20 text-green-300 rounded-lg text-sm font-medium border border-green-500/30">Research & Analytics</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="py-20 bg-slate-900/50 backdrop-blur-sm border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl font-bold text-white">Experience</h2>
+                <div class="w-16 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Experience Card 1 -->
+                <div class="glass-card p-6 rounded-xl fade-in">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-white">North South University</h3>
+                            <p class="text-indigo-400 font-medium">Research Assistant / Student</p>
+                        </div>
+                        <span class="text-sm text-gray-400 mt-2 md:mt-0 bg-slate-800 px-3 py-1 rounded-full border border-white/10">Present</span>
+                    </div>
+                    <p class="text-gray-300 mb-4 leading-relaxed">
+                        Engaged in interdisciplinary research projects focusing on data analysis and real-world problem-solving. Contributed to medical research papers involving data-driven insights, statistical analysis, and visualization. Developed skills in data collection, preprocessing, and interpretation using tools like Python and Excel.
+                    </p>
+                    <ul class="list-disc list-inside text-gray-400 text-sm space-y-1">
+                        <li>Collaborated with peers and faculty, strengthening analytical thinking and academic writing.</li>
+                        <li>Focus on medical domains and data-driven solutions.</li>
+                    </ul>
+                </div>
+
+                <!-- Experience Card 2 -->
+                <div class="glass-card p-6 rounded-xl fade-in">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Programming Hero</h3>
+                            <p class="text-indigo-400 font-medium">Web Developer</p>
+                        </div>
+                        <span class="text-sm text-gray-400 mt-2 md:mt-0 bg-slate-800 px-3 py-1 rounded-full border border-white/10">Past</span>
+                    </div>
+                    <p class="text-gray-300 mb-4 leading-relaxed">
+                        Skilled in creating mobile-first, responsive websites using HTML, CSS, JavaScript, Tailwind CSS, React, Firebase, Node JS, and Express JS. Experienced in designing layouts that adapt seamlessly across devices to ensure optimal user experience and accessibility.
+                    </p>
+                    <div class="flex gap-2 flex-wrap mt-2">
+                        <span class="px-2 py-1 bg-slate-700 rounded text-xs text-gray-300">Tailwind CSS</span>
+                        <span class="px-2 py-1 bg-slate-700 rounded text-xs text-gray-300">React</span>
+                        <span class="px-2 py-1 bg-slate-700 rounded text-xs text-gray-300">Node.js</span>
+                    </div>
+                </div>
+
+                <!-- Experience Card 3 -->
+                <div class="glass-card p-6 rounded-xl fade-in">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Udemy</h3>
+                            <p class="text-indigo-400 font-medium">Online Learner</p>
+                        </div>
+                        <span class="text-sm text-gray-400 mt-2 md:mt-0 bg-slate-800 px-3 py-1 rounded-full border border-white/10">Certified</span>
+                    </div>
+                    <p class="text-gray-300 mb-2">Completed courses:</p>
+                    <ul class="list-disc list-inside text-gray-400 text-sm space-y-1">
+                        <li>Python Development, Data Science: Variables and Data Types (MTF Institute)</li>
+                        <li>Master Git and GitHub - Beginner to Expert</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Publications Section -->
+    <section id="publications" class="py-20 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl font-bold text-white">Publications</h2>
+                <div class="w-16 h-1 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto mt-4 rounded-full"></div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Publication 1 -->
+                <div class="glass-card p-6 rounded-xl border-t-4 border-indigo-500 fade-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-indigo-500/20 text-indigo-300 text-xs font-bold px-2 py-1 rounded">Medical AI</span>
+                        <span class="text-gray-500 text-xs">2024</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Revolutionizing Workout Analytics: Machine Learning Models for Calorie Burn Estimation</h3>
+                    <p class="text-gray-400 text-sm mb-4">A comprehensive approach using ML to predict calorie expenditure during workouts.</p>
+                    <a href="https://doi.org/10.32896/ajmedtech.v4n2.33-45" target="_blank" class="inline-flex items-center text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">
+                        View DOI 
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </a>
+                </div>
+
+                <!-- Publication 2 -->
+                <div class="glass-card p-6 rounded-xl border-t-4 border-purple-500 fade-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-purple-500/20 text-purple-300 text-xs font-bold px-2 py-1 rounded">CNN Architecture</span>
+                        <span class="text-gray-500 text-xs">2023</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Kidney Cancerous Tumor Prediction Using CNN System Architecture</h3>
+                    <p class="text-gray-400 text-sm mb-4">Utilizing Convolutional Neural Networks for early detection of kidney tumors.</p>
+                    <a href="https://doi.org/10.32896/ajmedtech.v4n1.57-70" target="_blank" class="inline-flex items-center text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">
+                        View DOI 
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </a>
+                </div>
+
+                <!-- Publication 3 -->
+                <div class="glass-card p-6 rounded-xl border-t-4 border-pink-500 fade-in">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-pink-500/20 text-pink-300 text-xs font-bold px-2 py-1 rounded">TechRxiv</span>
+                        <span class="text-gray-500 text-xs">2024</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Calories Burnt Prediction: A Machine Learning Approach</h3>
+                    <p class="text-gray-400 text-sm mb-4">Predictive modeling for calorie burning based on user metrics and activity data.</p>
+                    <a href="https://techrxiv.org/doi/10.36227/techrxiv.172469977.72861155/v1" target="_blank" class="inline-flex items-center text-indigo-400 hover:text-indigo-300 text-sm font-medium transition-colors">
+                        View DOI 
+                        <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-slate-900/50 backdrop-blur-sm border-t border-white/5">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <div class="glass-card p-8 md:p-12 rounded-2xl fade-in">
+                <h2 class="text-3xl font-bold text-white mb-4">Let's Connect</h2>
+                <p class="text-gray-400 mb-8 max-w-lg mx-auto">
+                    I'm currently open to new opportunities in Data Science and Web Development. Whether you have a question or just want to say hi, I'll try my best to get back to you!
+                </p>
+                
+                <div class="grid sm:grid-cols-3 gap-4 text-left mb-8">
+                    <div class="bg-slate-800/50 p-4 rounded-lg border border-white/5">
+                        <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">Email</p>
+                        <a href="mailto:sihab.bhuiyan68690@gmail.com" class="text-white hover:text-indigo-400 transition-colors break-all">sihab.bhuiyan68690@gmail.com</a>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-lg border border-white/5">
+                        <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">Phone</p>
+                        <a href="tel:+8801854149890" class="text-white hover:text-indigo-400 transition-colors">+8801854149890</a>
+                    </div>
+                    <div class="bg-slate-800/50 p-4 rounded-lg border border-white/5">
+                        <p class="text-gray-500 text-xs uppercase tracking-wider mb-1">Location</p>
+                        <p class="text-white">Dhaka, Bangladesh</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <a href="mailto:sihab.bhuiyan68690@gmail.com" class="btn-primary px-6 py-3 rounded-lg font-semibold text-white flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        Send Email
+                    </a>
+                    <a href="assets/Sihab.pdf" download="Md_Sihab_Bhuiyan_CV.pdf" class="px-6 py-3 rounded-lg font-semibold text-white border border-white/20 hover:bg-white/10 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Download CV
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 bg-slate-900/80 backdrop-blur-md py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="text-gray-400 text-sm">
+                &copy; <span id="year"></span> Md. Sihab Bhuiyan. All rights reserved.
+            </p>
+            <p class="text-gray-500 text-xs mt-2">Designed & Built with Precision</p>
+        </div>
+    </footer>
+
+    <script>
+        // Set current year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Mobile Menu Toggle
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // Close mobile menu when clicking a link
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+        // Intersection Observer for Fade-in Animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Three.js Background Animation
+        const initThreeJS = () => {
+            const container = document.getElementById('canvas-container');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // Create Particles
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 700;
+            const posArray = new Float32Array(particlesCount * 3);
+
+            for(let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 15; // Spread particles
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+            // Material
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.02,
+                color: 0x6366f1,
+                transparent: true,
+                opacity: 0.8,
+            });
+
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            camera.position.z = 2;
+
+            // Mouse Interaction
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetX = 0;
+            let targetY = 0;
+
+            const windowHalfX = window.innerWidth / 2;
+            const windowHalfY = window.innerHeight / 2;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - windowHalfX);
+                mouseY = (event.clientY - windowHalfY);
+            });
+
+            // Animation Loop
+            const animate = () => {
+                requestAnimationFrame(animate);
+
+                targetX = mouseX * 0.001;
+                targetY = mouseY * 0.001;
+
+                particlesMesh.rotation.y += 0.001;
+                particlesMesh.rotation.x += 0.0005;
+
+                // Subtle rotation based on mouse
+                particlesMesh.rotation.x += 0.05 * (targetY - particlesMesh.rotation.x);
+                particlesMesh.rotation.y += 0.05 * (targetX - particlesMesh.rotation.y);
+
+                renderer.render(scene, camera);
+            };
+
+            animate();
+
+            // Handle Resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        };
+
+        // Initialize Three.js on Load
+        window.addEventListener('load', initThreeJS);
+
+        // Smooth Scrolling for Anchor Links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    window.scrollTo({
+                        top: target.offsetTop - 70, // Offset for fixed header
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
